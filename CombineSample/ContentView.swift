@@ -68,24 +68,30 @@ final class ContentViewModel : BindableObject {
 }
 
 struct ContentView : View {
-    @State private var username: String = ""
+    @ObjectBinding var viewModel: ContentViewModel
 
     var body: some View {
         VStack {
-            TextField($username, placeholder: Text("Placeholder"), onEditingChanged: { (changed) in
+            HStack {
+                Text($viewModel.status.value.content)
+                    .color($viewModel.status.value.color)
+                Spacer()
+            }
+            TextField($viewModel.username, placeholder: Text("Placeholder"), onEditingChanged: { (changed) in
                 print("onEditingChanged: \(changed)")
             }, onCommit: {
                 print("onCommit")
             })
         }
         .padding(.horizontal)
+        .onAppear(perform: viewModel.onAppear)
     }
 }
 
 #if DEBUG
 struct ContentView_Previews : PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView(viewModel: ContentViewModel())
     }
 }
 #endif
