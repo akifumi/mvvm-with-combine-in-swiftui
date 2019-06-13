@@ -9,8 +9,17 @@
 import SwiftUI
 
 struct ContentView : View {
+    @State private var username: String = ""
+
     var body: some View {
-        Text("Hello World")
+        VStack {
+            TextField($username, placeholder: Text("Placeholder"), onEditingChanged: { (changed) in
+                print("onEditingChanged: \(changed)")
+            }, onCommit: {
+                print("onCommit")
+            })
+        }
+        .padding(.horizontal)
     }
 }
 
