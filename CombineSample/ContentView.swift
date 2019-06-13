@@ -59,7 +59,11 @@ final class ContentViewModel : BindableObject {
         // Update StatusText
         _ = self?.validatedUsername
             .map { (value) -> StatusText in
-                (value != nil) ? StatusText(content: "OK", color: .green) : StatusText(content: "NG", color: .red)
+                if let _ = value {
+                    return StatusText(content: "OK", color: .green)
+                } else {
+                    return StatusText(content: "NG", color: .red)
+                }
             }
             .sink(receiveValue: { [weak self] (value) in
                 self?.status = value
