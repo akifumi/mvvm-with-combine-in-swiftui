@@ -11,10 +11,9 @@ import Combine
 
 final class ContentViewModel : BindableObject {
     var didChange = PassthroughSubject<Void, Never>()
+    @Published
     var username: String = "" {
         didSet {
-            guard oldValue != username else { return }
-            usernameSubject.send(username)
             didChange.send(())
         }
     }
@@ -22,14 +21,14 @@ final class ContentViewModel : BindableObject {
         let content: String
         let color: Color
     }
+    @Published
     var status: StatusText = StatusText(content: "NG", color: .red) {
         didSet {
             didChange.send(())
         }
     }
-    private let usernameSubject = PassthroughSubject<String, Never>()
     private var validatedUsername: AnyPublisher<String?, Never> {
-        return usernameSubject
+        return $username
             .debounce(for: 0.1, scheduler: RunLoop.main)
             .removeDuplicates()
             .flatMap { (username) -> AnyPublisher<String?, Never> in
