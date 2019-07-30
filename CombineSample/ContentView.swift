@@ -9,12 +9,12 @@
 import SwiftUI
 import Combine
 
-final class ContentViewModel : BindableObject {
-    var didChange = PassthroughSubject<Void, Never>()
+final class ContentViewModel : ObservableObject {
+    var objectWillChange = PassthroughSubject<Void, Never>()
     @Published
     var username: String = "" {
         didSet {
-            didChange.send(())
+            objectWillChange.send(())
         }
     }
     struct StatusText {
@@ -24,7 +24,7 @@ final class ContentViewModel : BindableObject {
     @Published
     var status: StatusText = StatusText(content: "NG", color: .red) {
         didSet {
-            didChange.send(())
+            objectWillChange.send(())
         }
     }
     private var validatedUsername: AnyPublisher<String?, Never> {
@@ -32,7 +32,7 @@ final class ContentViewModel : BindableObject {
             .debounce(for: 0.1, scheduler: RunLoop.main)
             .removeDuplicates()
             .flatMap { (username) -> AnyPublisher<String?, Never> in
-                Publishers.Future<String?, Never> { (promise) in
+                Future<String?, Never> { (promise) in
                     // FIXME: API request
                     if 1...10 ~= username.count {
                         promise(.success(username))
@@ -45,9 +45,13 @@ final class ContentViewModel : BindableObject {
             .eraseToAnyPublisher()
     }
 
+    private var usernameCancellable: AnyCancellable?
+    private var statusCancellable: AnyCancellable?
+
     lazy var onAppear: () -> Void = { [weak self] in
-        _ = self?.validatedUsername
-            .sink(receiveValue: { (value) in
+        guard let self = self else { return }
+        self.usernameCancellable = self.validatedUsername
+            .sink(receiveValue: { [weak self] (value) in
                 if let value = value {
                     self?.username = value
                 } else {
@@ -56,7 +60,7 @@ final class ContentViewModel : BindableObject {
             })
 
         // Update StatusText
-        _ = self?.validatedUsername
+        self.statusCancellable = self.validatedUsername
             .map { (value) -> StatusText in
                 if let _ = value {
                     return StatusText(content: "OK", color: .green)
@@ -68,19 +72,27 @@ final class ContentViewModel : BindableObject {
                 self?.status = value
             })
     }
+
+    lazy var onDisappear: () -> Void = { [weak self] in
+        self?.usernameCancellable?.cancel()
+        self?.usernameCancellable = nil
+
+        self?.statusCancellable?.cancel()
+        self?.statusCancellable = nil
+    }
 }
 
 struct ContentView : View {
-    @ObjectBinding var viewModel: ContentViewModel
+    @ObservedObject var viewModel: ContentViewModel
 
     var body: some View {
         VStack {
             HStack {
                 Text($viewModel.status.value.content)
-                    .color($viewModel.status.value.color)
+                    .foregroundColor($viewModel.status.value.color)
                 Spacer()
             }
-            TextField($viewModel.username, placeholder: Text("Placeholder"), onEditingChanged: { (changed) in
+            TextField("Placeholder", text: $viewModel.username, onEditingChanged: { (changed) in
                 print("onEditingChanged: \(changed)")
             }, onCommit: {
                 print("onCommit")
@@ -88,6 +100,7 @@ struct ContentView : View {
         }
         .padding(.horizontal)
         .onAppear(perform: viewModel.onAppear)
+        .onDisappear(perform: viewModel.onDisappear)
     }
 }
 
