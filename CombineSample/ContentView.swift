@@ -10,11 +10,11 @@ import SwiftUI
 import Combine
 
 final class ContentViewModel : ObservableObject {
-    var willChange = PassthroughSubject<Void, Never>()
+    var objectWillChange = PassthroughSubject<Void, Never>()
     @Published
     var username: String = "" {
         didSet {
-            willChange.send(())
+            objectWillChange.send(())
         }
     }
     struct StatusText {
@@ -24,7 +24,7 @@ final class ContentViewModel : ObservableObject {
     @Published
     var status: StatusText = StatusText(content: "NG", color: .red) {
         didSet {
-            willChange.send(())
+            objectWillChange.send(())
         }
     }
     private var validatedUsername: AnyPublisher<String?, Never> {
