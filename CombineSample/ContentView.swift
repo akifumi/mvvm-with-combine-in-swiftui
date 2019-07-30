@@ -72,6 +72,14 @@ final class ContentViewModel : ObservableObject {
                 self?.status = value
             })
     }
+
+    lazy var onDisappear: () -> Void = { [weak self] in
+        self?.usernameCancellable?.cancel()
+        self?.usernameCancellable = nil
+
+        self?.statusCancellable?.cancel()
+        self?.statusCancellable = nil
+    }
 }
 
 struct ContentView : View {
@@ -92,6 +100,7 @@ struct ContentView : View {
         }
         .padding(.horizontal)
         .onAppear(perform: viewModel.onAppear)
+        .onDisappear(perform: viewModel.onDisappear)
     }
 }
 
