@@ -9,12 +9,12 @@
 import SwiftUI
 import Combine
 
-final class ContentViewModel : BindableObject {
-    var didChange = PassthroughSubject<Void, Never>()
+final class ContentViewModel : ObservableObject {
+    var willChange = PassthroughSubject<Void, Never>()
     @Published
     var username: String = "" {
         didSet {
-            didChange.send(())
+            willChange.send(())
         }
     }
     struct StatusText {
@@ -24,7 +24,7 @@ final class ContentViewModel : BindableObject {
     @Published
     var status: StatusText = StatusText(content: "NG", color: .red) {
         didSet {
-            didChange.send(())
+            willChange.send(())
         }
     }
     private var validatedUsername: AnyPublisher<String?, Never> {
@@ -32,7 +32,7 @@ final class ContentViewModel : BindableObject {
             .debounce(for: 0.1, scheduler: RunLoop.main)
             .removeDuplicates()
             .flatMap { (username) -> AnyPublisher<String?, Never> in
-                Publishers.Future<String?, Never> { (promise) in
+                Future<String?, Never> { (promise) in
                     // FIXME: API request
                     if 1...10 ~= username.count {
                         promise(.success(username))
@@ -71,16 +71,16 @@ final class ContentViewModel : BindableObject {
 }
 
 struct ContentView : View {
-    @ObjectBinding var viewModel: ContentViewModel
+    @ObservedObject var viewModel: ContentViewModel
 
     var body: some View {
         VStack {
             HStack {
                 Text($viewModel.status.value.content)
-                    .color($viewModel.status.value.color)
+                    .foregroundColor($viewModel.status.value.color)
                 Spacer()
             }
-            TextField($viewModel.username, placeholder: Text("Placeholder"), onEditingChanged: { (changed) in
+            TextField("Placeholder", text: $viewModel.username, onEditingChanged: { (changed) in
                 print("onEditingChanged: \(changed)")
             }, onCommit: {
                 print("onCommit")
