@@ -45,12 +45,11 @@ final class ContentViewModel : ObservableObject {
             .eraseToAnyPublisher()
     }
 
-    private var usernameCancellable: AnyCancellable?
-    private var statusCancellable: AnyCancellable?
+    private var cancellables: [AnyCancellable] = []
 
     lazy var onAppear: () -> Void = { [weak self] in
         guard let self = self else { return }
-        self.usernameCancellable = self.validatedUsername
+        let usernameCancellable = self.validatedUsername
             .sink(receiveValue: { [weak self] (value) in
                 if let value = value {
                     self?.username = value
@@ -60,7 +59,7 @@ final class ContentViewModel : ObservableObject {
             })
 
         // Update StatusText
-        self.statusCancellable = self.validatedUsername
+        let statusCancellable = self.validatedUsername
             .map { (value) -> StatusText in
                 if let _ = value {
                     return StatusText(content: "OK", color: .green)
@@ -71,14 +70,14 @@ final class ContentViewModel : ObservableObject {
             .sink(receiveValue: { [weak self] (value) in
                 self?.status = value
             })
+
+        self.cancellables = [usernameCancellable, statusCancellable]
     }
 
     lazy var onDisappear: () -> Void = { [weak self] in
-        self?.usernameCancellable?.cancel()
-        self?.usernameCancellable = nil
-
-        self?.statusCancellable?.cancel()
-        self?.statusCancellable = nil
+        guard let self = self else { return }
+        self.cancellables.forEach { $0.cancel() }
+        self.cancellables = []
     }
 }
 
