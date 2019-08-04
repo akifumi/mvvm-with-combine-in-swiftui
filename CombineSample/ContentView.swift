@@ -9,7 +9,7 @@
 import SwiftUI
 import Combine
 
-final class ContentViewModel : ObservableObject {
+final class ContentViewModel : ObservableObject, Identifiable {
     var objectWillChange = PassthroughSubject<Void, Never>()
     @Published
     var username: String = "" {
