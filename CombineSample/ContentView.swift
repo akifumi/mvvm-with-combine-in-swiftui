@@ -49,7 +49,7 @@ final class ContentViewModel : ObservableObject, Identifiable {
 
     private(set) lazy var onAppear: () -> Void = { [weak self] in
         guard let self = self else { return }
-        let usernameCancellable = self.validatedUsername
+        self.validatedUsername
             .sink(receiveValue: { [weak self] (value) in
                 if let value = value {
                     self?.username = value
@@ -57,9 +57,10 @@ final class ContentViewModel : ObservableObject, Identifiable {
                     print("validatedUsername.receiveValue: Invalid username")
                 }
             })
+            .store(in: &self.cancellables)
 
         // Update StatusText
-        let statusCancellable = self.validatedUsername
+        self.validatedUsername
             .map { (value) -> StatusText in
                 if let _ = value {
                     return StatusText(content: "OK", color: .green)
@@ -70,8 +71,7 @@ final class ContentViewModel : ObservableObject, Identifiable {
             .sink(receiveValue: { [weak self] (value) in
                 self?.status = value
             })
-
-        self.cancellables = [usernameCancellable, statusCancellable]
+            .store(in: &self.cancellables)
     }
 
     private(set) lazy var onDisappear: () -> Void = { [weak self] in
