@@ -47,7 +47,7 @@ final class ContentViewModel : ObservableObject, Identifiable {
 
     private var cancellables: [AnyCancellable] = []
 
-    lazy var onAppear: () -> Void = { [weak self] in
+    private(set) lazy var onAppear: () -> Void = { [weak self] in
         guard let self = self else { return }
         let usernameCancellable = self.validatedUsername
             .sink(receiveValue: { [weak self] (value) in
@@ -74,7 +74,7 @@ final class ContentViewModel : ObservableObject, Identifiable {
         self.cancellables = [usernameCancellable, statusCancellable]
     }
 
-    lazy var onDisappear: () -> Void = { [weak self] in
+    private(set) lazy var onDisappear: () -> Void = { [weak self] in
         guard let self = self else { return }
         self.cancellables.forEach { $0.cancel() }
         self.cancellables = []
