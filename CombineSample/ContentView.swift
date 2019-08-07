@@ -13,7 +13,7 @@ final class ContentViewModel : ObservableObject, Identifiable {
     var objectWillChange = PassthroughSubject<Void, Never>()
     @Published
     var username: String = "" {
-        didSet {
+        willSet {
             objectWillChange.send(())
         }
     }
@@ -23,7 +23,7 @@ final class ContentViewModel : ObservableObject, Identifiable {
     }
     @Published
     var status: StatusText = StatusText(content: "NG", color: .red) {
-        didSet {
+        willSet {
             objectWillChange.send(())
         }
     }
