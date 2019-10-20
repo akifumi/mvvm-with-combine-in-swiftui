@@ -87,8 +87,8 @@ struct ContentView : View {
     var body: some View {
         VStack {
             HStack {
-                Text($viewModel.status.value.content)
-                    .foregroundColor($viewModel.status.value.color)
+                Text($viewModel.status.wrappedValue.content)
+                    .foregroundColor($viewModel.status.wrappedValue.color)
                 Spacer()
             }
             TextField("Placeholder", text: $viewModel.username, onEditingChanged: { (changed) in
